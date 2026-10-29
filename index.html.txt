@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delta Pay — Dashboard</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f1f1f1;color:#151515;font:14px/1.5 Arial,sans-serif}
+.banner{padding:10px;background:#fff2c9;text-align:center;color:#725000;font-size:12px}
+.app{max-width:460px;min-height:100vh;margin:auto;background:white;padding:18px 16px 85px}
+header{display:flex;justify-content:space-between;font-weight:bold;font-size:18px;margin-bottom:18px}
+.muted{color:#777;font-size:12px}
+.panel{border:1px solid #e8e8e8;border-radius:10px;padding:16px;margin:12px 0}
+.hero{background:linear-gradient(110deg,#080808,#333,#4b2c7e);color:white;padding:20px;border-radius:8px}
+.hero h1{margin:0 0 5px;font-size:24px}
+.field{margin:13px 0}
+.field label{display:block;font-size:12px;color:#666;margin-bottom:6px}
+.field input{width:100%;padding:12px;border:1px solid #ddd;border-radius:7px;font-size:14px}
+.btn{width:100%;padding:12px;border:0;border-radius:7px;background:#111;color:white;font-weight:bold;cursor:pointer}
+.secondary{background:#eee;color:#111}
+.tabs{display:flex;gap:8px;margin:14px 0}
+.tabs button{flex:1;padding:10px;border:0;border-radius:7px;background:#eee}
+.tabs .active{background:#111;color:white}
+.note{background:#f7f7f7;padding:11px;border-radius:7px;font-size:12px;color:#666;margin:12px 0}
+.warn{background:#fff3e8;color:#813d08}
+.status{font-size:12px;overflow-wrap:anywhere;margin-top:10px}
+.good{color:#146343}.bad{color:#8a3300}
+.hidden{display:none!important}
+.row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #eee}
+.row:last-child{border:0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.metric{background:#f6f6f6;border-radius:8px;padding:13px;overflow-wrap:anywhere}
+.metric small{display:block;color:#777}
+.metric strong{display:block;margin-top:5px}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,460px);display:flex;background:white;border-top:1px solid #eee}
+.nav button{flex:1;padding:13px 4px;border:0;background:white;font-size:11px}
+.foot{text-align:center;color:#999;font-size:10px;padding:14px}
+</style>
+</head>
+<body>
+<div class="banner">DEVELOPMENT VERSION · Read-only dashboard. Real-money transactions are disabled.</div>
+
+<div class="app">
+<header>
+<span>Δ Delta Pay</span>
+<span class="muted" id="connection">Not connected</span>
+</header>
+
+<section id="setup" class="panel">
+<h3>Connect Supabase</h3>
+<p class="muted">Enter your project URL and publishable key. Never use a secret or service-role key here.</p>
+<div class="field">
+<label>Project URL</label>
+<input id="url" type="url" placeholder="https://your-project.supabase.co">
+</div>
+<div class="field">
+<label>Publishable key or legacy anon key</label>
+<input id="key" type="password" placeholder="Supabase publishable key" autocomplete="off">
+</div>
+<button class="btn" id="connect">Save settings and connect</button>
+<div class="status" id="setupStatus"></div>
+</section>
+
+<section id="auth" class="panel hidden">
+<div class="hero">
+<h1>Welcome to Delta Pay</h1>
+<div style="color:#eee">Email account · Development version</div>
+</div>
+<div class="tabs">
+<button id="loginTab" class="active">Log in</button>
+<button id="signupTab">Create account</button>
+</div>
+<div class="note warn">Use your registered email and password. Email confirmation may be required for new accounts.</div>
+<div class="field">
+<label>Email address</label>
+<input id="email" type="email" placeholder="you@example.com" autocomplete="email">
+</div>
+<div class="field">
+<label>Password (at least 8 characters)</label>
+<input id="password" type="password" minlength="8" autocomplete="current-password">
+</div>
+<button class="btn" id="authButton">Log in with email and password</button>
+<div class="status" id="authStatus"></div>
+</section>
+
+<section id="account" class="hidden">
+<div class="hero">
+<h1>Delta Pay</h1>
+<p>Account dashboard · Read-only development mode</p>
+</div>
+
+<div class="panel">
+<div class="grid">
+<div class="metric">
+<small>Available balance</small>
+<strong id="walletBalance">Loading…</strong>
+</div>
+<div class="metric">
+<small>Reserved balance</small>
+<strong id="reservedBalance">Loading…</strong>
+</div>
+</div>
+<div id="dataStatus" class="status">Loading account records…</div>
+<div class="note warn">No deposits, balance changes, transfers, investments, or withdrawals can be made in this demo.</div>
+</div>
+
+<div class="panel">
+<h3>Account details</h3>
+<div class="row"><span>Account status</span><strong id="accountStatus">Signed in</strong></div>
+<div class="row"><span>Referral code</span><strong id="referralCode">Loading…</strong></div>
+<div class="row"><span>Member since</span><strong id="memberSince">Loading…</strong></div>
+<div class="row"><span>Database</span><strong id="dbStatus">Checking…</strong></div>
+</div>
+
+<div class="panel">
+<h3>Recent transactions</h3>
+<div id="transactionsList" class="muted">Loading transactions…</div>
+</div>
+
+<div class="panel">
+<button class="btn secondary" id="refreshData">Refresh dashboard</button>
+<button class="btn secondary" id="signout" style="margin-top:10px">Sign out</button>
+</div>
+</section>
+
+<section id="statusPage" class="hidden">
+<div class="panel">
+<h3>Development status</h3>
+<div class="row"><span>Supabase client</span><strong id="clientStatus">Not tested</strong></div>
+<div class="row"><span>Email/password login</span><strong>Configured</strong></div>
+<div class="row"><span>Database reads</span><strong>Read-only</strong></div>
+<div class="row"><span>Real-money payments</span><strong>Disabled</strong></div>
+</div>
+<div class="note">Database access depends on your Supabase table structure and row-level security policies.</div>
+<button class="btn secondary" id="settings">Change Supabase settings</button>
+</section>
+
+<div class="foot">Delta Pay development demo · No financial transactions are processed.</div>
+</div>
+
+<nav id="nav" class="nav hidden">
+<button data-page="account">Account</button>
+<button data-page="statusPage">Status</button>
+<button id="navOut">Sign out</button>
+<button id="navSettings">Settings</button>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+let client=null,mode='login';
+
+$('url').value=localStorage.getItem('delta_url')||'https://uuuwbnbuixrthnxtjfyy.supabase.co';
+$('key').value=localStorage.getItem('delta_key')||'';
+
+function status(id,msg,kind=''){
+const e=$(id);e.textContent=msg;e.className='status '+kind;
+}
+
+function show(which){
+['setup','auth','account','statusPage'].forEach(x=>
+$(x).classList.toggle('hidden',x!==which));
+$('nav').classList.toggle('hidden',!['account','statusPage'].includes(which));
+$('connection').textContent=client?'Connected':'Not connected';
+}
+
+function setMode(m){
+mode=m;
+$('loginTab').classList.toggle('active',m==='login');
+$('signupTab').classList.toggle('active',m==='signup');
+$('authButton').textContent=m==='login'?'Log in with email and password':'Create account';
+status('authStatus','');
+}
+
+async function connect(){
+const url=$('url').value.trim().replace(/\/+$/,'');
+const key=$('key').value.trim();
+
+if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)){
+status('setupStatus','Enter the Project URL, such as https://your-project.supabase.co','bad');
+return;
+}
+
+if(!key||/service_role|secret/i.test(key)){
+status('setupStatus','Enter a publishable or anon key. Never use a secret/service-role key.','bad');
+return;
+}
+
+if(!window.supabase){
+status('setupStatus','Supabase library failed to load. Check your internet and reload.','bad');
+return;
+}
+
+try{
+client=window.supabase.createClient(url,key,{
+auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+});
+localStorage.setItem('delta_url',url);
+localStorage.setItem('delta_key',key);
+
+const {data,error}=await client.auth.getSession();
+if(error)throw error;
+
+$('clientStatus').textContent='Client initialized';
+status('setupStatus','Supabase client initialized.','good');
+
+if(data.session){
+show('account');
+await loadDashboard(data.session.user);
+}else{
+show('auth');
+}
+}catch(e){
+client=null;
+status('setupStatus','Connection setup failed: '+e.message,'bad');
+}
+}
+
+$('connect').onclick=connect;
+$('loginTab').onclick=()=>setMode('login');
+$('signupTab').onclick=()=>setMode('signup');
+
+$('authButton').onclick=async()=>{
+if(!client){
+status('authStatus','Connect Supabase first.','bad');
+return;
+}
+
+const email=$('email').value.trim();
+const password=$('password').value;
+
+if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+status('authStatus','Enter a valid email address.','bad');
+return;
+}
+if(password.length<8){
+status('authStatus','Password must be at least 8 characters.','bad');
+return;
+}
+
+$('authButton').disabled=true;
+status('authStatus',mode==='login'?'Signing in…':'Submitting registration…');
+
+try{
+if(mode==='login'){
+const {data,error}=await client.auth.signInWithPassword({email,password});
+if(error)throw error;
+show('account');
+await loadDashboard(data.user);
+}else{
+const {data,error}=await client.auth.signUp({email,password});
+if(error)throw error;
+status('authStatus',
+data.session?'Account created successfully.':'Registration submitted. Check your email if confirmation is enabled.',
+'good');
+}
+}catch(e){
+status('authStatus',e.message+' Confirm your email if required, then try again.','bad');
+}finally{
+$('authButton').disabled=false;
+}
+};
+
+function dateText(value){
+if(!value)return 'Not available';
+const d=new Date(value);
+return Number.isNaN(d.getTime())?'Not available':
+d.toLocaleDateString('en-IN',{year:'numeric',month:'short',day:'numeric'});
+}
+
+function money(amount,currency='INR'){
+const value=Number(amount||0);
+if(!Number.isFinite(value))return 'Not available';
+return new Intl.NumberFormat('en-IN',{
+style:'currency',currency:(currency||'INR').trim(),
+minimumFractionDigits:2,maximumFractionDigits:2
+}).format(value/100);
+}
+
+function setText(id,value){$(id).textContent=value;}
+
+function renderTransactions(rows){
+const host=$('transactionsList');
+host.replaceChildren();
+
+if(!rows||rows.length===0){
+host.textContent='No transactions found for this account.';
+return;
+}
+
+for(const tx of rows){
+const row=document.createElement('div');
+row.className='row';
+
+const left=document.createElement('div');
+const title=document.createElement('strong');
+title.textContent=(tx.description&&String(tx.description).trim())||
+String(tx.kind||'Transaction').replaceAll('_',' ');
+title.style.display='block';
+
+const meta=document.createElement('div');
+meta.className='muted';
+meta.textContent=dateText(tx.created_at)+' · '+(tx.status||'unknown');
+
+left.append(title,meta);
+
+const amount=document.createElement('strong');
+amount.textContent=money(tx.amount_paise,tx.currency);
+row.append(left,amount);
+host.append(row);
+}
+}
+
+async function loadDashboard(user){
+if(!client||!user)return;
+
+setText('walletBalance','Loading…');
+setText('reservedBalance','Loading…');
+setText('dataStatus','Reading your account records…');
+$('transactionsList').textContent='Loading transactions…';
+
+try{
+const [profileRes,walletRes,txRes]=await Promise.all([
+client.from('profiles')
+.select('referral_code,created_at')
+.eq('id',user.id).maybeSingle(),
+
+client.from('wallets')
+.select('currency,available_paise,reserved_paise,updated_at')
+.eq('user_id',user.id).maybeSingle(),
+
+client.from('transactions')
+.select('id,kind,status,amount_paise,currency,description,created_at')
+.eq('user_id',user.id)
+.order('created_at',{ascending:false})
+.limit(10)
+]);
+
+let issues=[];
+
+if(profileRes.error){
+issues.push('Profile: '+profileRes.error.message);
+setText('referralCode','Unavailable');
+setText('memberSince','Unavailable');
+}else if(!profileRes.data){
+issues.push('No profile row exists for this account.');
+setText('referralCode','Not set up');
+setText('memberSince','Not set up');
+}else{
+setText('referralCode',profileRes.data.referral_code||'Not assigned');
+setText('memberSince',dateText(profileRes.data.created_at));
+}
+
+if(walletRes.error){
+issues.push('Wallet: '+walletRes.error.message);
+setText('walletBalance','Unavailable');
+setText('reservedBalance','Unavailable');
+}else if(!walletRes.data){
+issues.push('No wallet row exists for this account.');
+setText('walletBalance','Not set up');
+setText('reservedBalance','Not set up');
+}else{
+setText('walletBalance',money(walletRes.data.available_paise,walletRes.data.currency));
+setText('reservedBalance',money(walletRes.data.reserved_paise,walletRes.data.currency));
+}
+
+if(txRes.error){
+issues.push('Transactions: '+txRes.error.message);
+$('transactionsList').textContent='Could not load transactions. Check table permissions and RLS.';
+}else{
+renderTransactions(txRes.data);
+}
+
+setText('dbStatus',issues.length?'Needs attention':'Connected');
+setText('dataStatus',issues.length?
+'Some records could not be loaded: '+issues.join(' | '):
+'Dashboard loaded. Records are read-only and limited by Supabase RLS.');
+$('dataStatus').className='status '+(issues.length?'bad':'good');
+
+}catch(e){
+setText('dbStatus','Error');
+setText('dataStatus','Database read failed: '+(e.message||String(e)));
+$('dataStatus').className='status bad';
+$('transactionsList').textContent='Could not load transactions.';
+}
+}
+
+$('refreshData').onclick=async()=>{
+const {data,error}=await client.auth.getUser();
+if(error||!data.user){
+status('dataStatus','Please sign in again to refresh.','bad');
+return;
+}
+await loadDashboard(data.user);
+};
+
+async function signout(){
+if(client)await client.auth.signOut();
+show('auth');
+}
+
+$('signout').onclick=signout;
+$('navOut').onclick=signout;
+$('settings').onclick=()=>show('setup');
+$('navSettings').onclick=()=>show('setup');
+
+document.querySelectorAll('[data-page]').forEach(b=>
+b.onclick=()=>show(b.dataset.page));
+
+if(localStorage.getItem('delta_url')&&localStorage.getItem('delta_key')){
+connect();
+}else{
+show('setup');
+}
+})();
+</script>
+</body>
+</html>
