@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Delta Pay — Demo</title>
+<style>
+:root{--ink:#111;--muted:#929292;--line:#ededed;--soft:#f7f7f7;--green:#22a06b}
+*{box-sizing:border-box}body{margin:0;background:#f2f2f2;color:var(--ink);font:14px/1.4 Arial,Helvetica,sans-serif}
+button,input,select{font:inherit}button{cursor:pointer;border:0}
+.demo-banner{position:sticky;top:0;z-index:20;background:#fff2c9;color:#5d4800;text-align:center;padding:6px 10px;font-size:11px;border-bottom:1px solid #ead99b}
+.phone{width:min(100%,430px);min-height:100vh;margin:0 auto;background:#fff;position:relative;box-shadow:0 0 30px #0001;padding-bottom:76px;overflow:hidden}
+header{height:54px;padding:18px 17px 8px;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+header .right{font-size:12px;font-weight:400;color:#777}
+.page{display:none;padding:8px 16px 20px}.page.active{display:block}
+.hero{height:112px;border-radius:7px;background:linear-gradient(110deg,#080808,#252525 72%,#4b2c7e);color:#fff;padding:18px 16px;display:flex;justify-content:space-between;align-items:center;position:relative;overflow:hidden}
+.hero h2{margin:0 0 5px;font-size:19px;line-height:1.1}.hero p{font-size:11px;margin:0 0 10px;color:#e4e4e4}.hero button{background:#fff;color:#111;border-radius:20px;padding:5px 13px;font-size:10px}
+.coin{font-size:54px;color:#e4c55e;text-shadow:0 3px 15px #fff5;transform:rotate(-12deg)}
+.ratio{display:grid;grid-template-columns:1fr 1fr;background:#f5f5f5;border-radius:6px;margin:10px 0;overflow:hidden}.ratio div{padding:12px 13px}.ratio div+div{border-left:1px solid #e8e8e8}.label{font-size:10px;color:#888}.big{font-size:18px;font-weight:700;margin-top:4px}.small{font-size:10px;color:#999}
+.black-btn{background:#050505;color:#fff;border-radius:8px;padding:12px 14px;font-weight:700;width:100%;font-size:12px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #f0f0f0;border-radius:7px;margin:12px 0}.stat{padding:13px 8px;text-align:center;border-bottom:1px solid #f0f0f0}.stat:nth-child(odd){border-right:1px solid #f0f0f0}.stat:nth-child(n+3){border-bottom:0}.stat .num{font-size:15px;font-weight:700;margin-top:4px}
+.section-title{font-weight:700;font-size:13px;margin:18px 0 10px}.row{display:flex;align-items:center;justify-content:space-between;padding:13px 2px;border-bottom:1px solid #f2f2f2;gap:10px}.row:last-child{border-bottom:0}.row .muted{color:#999;font-size:11px;margin-top:3px}.row .value{font-weight:700;text-align:right}.chev{font-size:20px;color:#aaa}
+.card{border:1px solid #f0f0f0;border-radius:8px;padding:13px;margin:10px 0;background:#fff}
+.task-track{display:flex;justify-content:space-between;align-items:center;border:1px solid #eee;border-radius:20px;padding:8px 4px;margin:10px 0}.task-step{width:33px;height:33px;background:#f0f0f0;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;color:#777;position:relative}.task-step small{position:absolute;top:-8px;right:-7px;background:#ddd;border-radius:8px;padding:1px 3px;font-size:8px}
+.filters{display:flex;gap:6px;align-items:center;margin:12px 0}.filters select,.filters input{min-width:0;width:100%;padding:8px;border:1px solid #eee;border-radius:5px;background:#fff;font-size:11px}.filters button{background:#000;color:#fff;border-radius:5px;padding:9px 10px;font-size:10px;white-space:nowrap}
+.plan{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid #eee}.plan h3{margin:0;font-size:16px}.plan p{margin:4px 0 0;color:#999;font-size:10px}.plan .green{color:var(--green);font-weight:700}.plan button{background:#000;color:#fff;border-radius:6px;padding:8px 16px;font-size:11px}
+.segment{display:flex;gap:20px;border-bottom:1px solid #eee;padding:9px 0 12px;font-size:12px;color:#999}.segment .selected{color:#111;font-weight:700;position:relative}.segment .selected:after{content:"";position:absolute;bottom:-13px;left:0;right:0;height:2px;background:#111}
+.notice{background:#f7f7f7;border-radius:6px;padding:10px;font-size:11px;color:#777;margin:12px 0}
+.field{margin:12px 0}.field label{display:block;font-size:11px;color:#888;margin-bottom:6px}.field input,.field select{width:100%;padding:12px;border:1px solid #e8e8e8;border-radius:6px;outline:none;background:#fff}
+.invite{padding:13px;border:1px solid #eee;border-radius:6px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px}.invite button{background:#000;color:#fff;padding:8px 10px;border-radius:5px;font-size:10px}
+.empty{padding:28px 10px;text-align:center;color:#aaa;font-size:12px}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,430px);height:68px;background:#fff;border-top:1px solid #eee;display:grid;grid-template-columns:repeat(5,1fr);z-index:10;padding:6px 2px max(6px,env(safe-area-inset-bottom))}
+.bottom-nav button{background:transparent;color:#999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:10px}.bottom-nav .ico{font-size:20px;line-height:1}.bottom-nav button.active{color:#050505;font-weight:700}.bottom-nav button.active .ico{background:#080808;color:#fff;border-radius:5px;padding:2px 7px}
+.toast{position:fixed;bottom:82px;left:50%;transform:translateX(-50%);width:min(90%,390px);background:#111;color:#fff;border-radius:8px;padding:11px 14px;font-size:12px;text-align:center;display:none;z-index:30}
+.modal{position:fixed;inset:0;background:#0008;display:none;align-items:flex-end;justify-content:center;z-index:25}.modal.show{display:flex}.sheet{width:min(100%,430px);background:#fff;border-radius:18px 18px 0 0;padding:22px 18px 30px}.sheet h3{margin:0 0 6px}.sheet p{color:#888;font-size:12px}.sheet .buttons{display:flex;gap:8px;margin-top:16px}.sheet .buttons button{flex:1}
+@media(min-width:700px){body{padding:24px 0}.phone{min-height:850px;border-radius:14px}.bottom-nav{position:absolute;bottom:0}.demo-banner{position:relative}}
+</style>
+</head>
+<body>
+<div class="demo-banner">DEMO PREVIEW · All balances and actions are simulated. No payments or withdrawals are enabled.</div>
+<div class="phone">
+<header><span id="headerTitle">Delta Pay</span><span class="right" id="headerRight">INR　 <span style="color:#aaa">USDT</span></span></header>
+
+<section class="page active" id="home">
+ <div class="hero"><div><h2>Delta Pay</h2><p>Smart payments. Simple experience.</p><button onclick="go('deposit')">EXPLORE DEMO ›</button></div><div class="coin">Δ</div></div>
+ <div class="ratio"><div><div class="label">USDT Ratio</div><div class="big">1 USDT ≈ 108.5 INR</div><div class="small">Demo reference only</div></div><div><div class="label">INR Bonus Ratio</div><div class="big">3.5%</div><div class="small">Illustrative figure</div></div></div>
+ <button class="black-btn" onclick="go('topup')">Top up　›</button>
+ <div class="stats">
+  <div class="stat"><div class="label">Balance</div><div class="num" id="balance">0.00</div></div><div class="stat"><div class="label">Today Received</div><div class="num">0.00</div></div>
+  <div class="stat"><div class="label">Top up Bonus</div><div class="num">0.00</div></div><div class="stat"><div class="label">Team Commission</div><div class="num" id="commission">72.55</div></div>
+  <div class="stat"><div class="label">Yesterday's Recharge</div><div class="num">0</div></div><div class="stat"><div class="label">Today's Recharge</div><div class="num">0</div></div>
+ </div>
+ <div class="section-title">Quick access</div>
+ <div class="row" onclick="go('deposit')"><div>Deposit plans<div class="muted">Browse sample plans</div></div><span class="chev">›</span></div>
+ <div class="row" onclick="go('upi')"><div>UPI accounts<div class="muted">Receive and send screens</div></div><span class="chev">›</span></div>
+ <div class="row" onclick="go('me')"><div>My account<div class="muted">Profile and settings</div></div><span class="chev">›</span></div>
+</section>
+
+<section class="page" id="deposit">
+ <div class="segment"><span class="selected">INR</span><span>USDT</span></div>
+ <div class="section-title">Task</div>
+ <div class="task-track"><div class="task-step">1<small>+5</small></div><div class="task-step">5<small>+15</small></div><div class="task-step">10<small>+50</small></div><div class="task-step">20<small>+80</small></div><div class="task-step">30<small>+150</small></div></div>
+ <div class="small">1 more for 5 reward</div>
+ <div class="row"><span>ⓘ　How Buy Quota?</span><span class="chev">›</span></div>
+ <div class="filters"><select id="sort"><option value="low">From low to high</option><option value="high">From high to low</option></select><input id="min" type="number" placeholder="Min"><input id="max" type="number" placeholder="Max"><button onclick="renderPlans()">Refresh</button></div>
+ <div id="plans"></div>
+ <div class="notice">Demo interface only. Plan figures are examples and do not represent a real financial product or return.</div>
+</section>
+
+<section class="page" id="upi">
+ <div class="segment"><span class="selected">Receive Payment</span><span>Send Payment</span></div>
+ <div class="notice">ⓘ Please keep your account available</div>
+ <div style="text-align:center;font-size:12px;padding:8px">ⓘ　How to bind UPI?</div>
+ <div class="row"><b>Available</b><span class="chev">⌃</span></div>
+ <div class="empty" id="upiEmpty">No demo UPI account added.</div>
+ <div class="row"><b>Unavailable</b><span class="chev">⌄</span></div>
+ <div class="notice">UPI is not connected in this prototype. No payments can be sent or received.</div>
+ <div style="position:absolute;bottom:95px;left:16px;right:16px"><div class="stats"><div class="stat"><div class="label">Available</div><div class="num">0</div></div><div class="stat"><div class="label">Unavailable</div><div class="num">0</div></div></div><button class="black-btn" onclick="toast('UPI binding is disabled in this demo.')">Add new account</button></div>
+</section>
+
+<section class="page" id="team">
+ <div class="card" style="background:#414141;color:#fff;border:0;padding:20px;border-radius:8px">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px"><div><div style="font-size:23px;font-weight:700">72.55</div><div style="font-size:11px">Commission</div></div><div><div style="font-size:23px;font-weight:700">45380</div><div style="font-size:11px">Team Recharge</div></div></div><div style="margin-top:18px;font-size:12px">♙ 7</div>
+ </div>
+ <div class="section-title">Invite Code</div><div class="invite"><span>DEMO-DELTA WALLET-001</span><button onclick="copyCode()">Copy</button></div>
+ <div class="section-title">Team Detail</div>
+ <div class="row"><div>Phone: 0000000000<div class="muted">Recharge: 0</div></div><div class="value">♙ 0<br><span class="muted">Comm: 0</span></div></div>
+ <div class="row"><div>Phone: 0000000000<div class="muted">Recharge: 0</div></div><div class="value">♙ 0<br><span class="muted">Comm: 0</span></div></div>
+ <div class="notice">Sample team figures are illustrative only. No real referrals or commissions are connected.</div>
+</section>
+
+<section class="page" id="me">
+ <div style="text-align:center;padding:18px 0 12px"><div style="font-size:12px;color:#888">Edit profile ⌄</div><div style="font-size:11px;margin-top:8px">ID: DEMO-60056342</div></div>
+ <div class="card" style="border:0"><div class="label">◎ Quota</div><div style="display:flex;align-items:center;justify-content:space-between"><div><div class="big" style="font-size:28px">0 <span style="font-size:12px">INR</span></div><div class="small">Reward ratio 0%</div></div><button class="black-btn" style="width:auto;padding:10px 18px" onclick="go('topup')">Top up</button></div></div>
+ <div class="row" onclick="toast('Recharge history is empty in this demo.')"><span>♧　Recharge History</span><span class="chev">›</span></div>
+ <div class="row" onclick="toast('Token history is empty in this demo.')"><span>▣　Token History</span><span class="chev">›</span></div>
+ <div class="row" onclick="toast('Language setting preview only.')"><span>◎　Languages</span><span class="small">English　›</span></div>
+ <div class="row" onclick="toast('Google Authentication is not connected.')"><span>✣　Google Authentication</span><span class="chev">›</span></div>
+ <div class="row" onclick="toast('Contact support is not connected in this demo.')"><span>▤　Contact Us</span><span class="chev">›</span></div>
+ <div class="row" onclick="go('login')"><span>⇥　Sign Out</span><span class="chev">›</span></div>
+</section>
+
+<section class="page" id="topup">
+ <div class="section-title">Top up</div><div class="notice">Demo only — no payment method is connected.</div>
+ <div class="field"><label>Sample amount (INR)</label><input type="number" id="amount" min="1" value="1000"></div>
+ <button class="black-btn" onclick="simulateTopup()">Preview top up</button>
+ <div class="section-title">Demo activity</div><div id="history" class="empty">No simulated activity yet.</div>
+</section>
+<section class="page" id="login">
+ <div class="section-title">Signed out</div><div class="notice">This is a local interface demo. No real account or credentials are used.</div><button class="black-btn" onclick="go('home')">Return to demo</button>
+</section>
+
+<nav class="bottom-nav">
+ <button class="active" data-page="home"><span class="ico">⌂</span>Home</button>
+ <button data-page="deposit"><span class="ico">⇄</span>Deposit</button>
+ <button data-page="upi"><span class="ico">▣</span>UPI</button>
+ <button data-page="team"><span class="ico">▦</span>Team</button>
+ <button data-page="me"><span class="ico">●</span>Me</button>
+</nav>
+</div>
+<div class="toast" id="toast"></div>
+<div class="modal" id="modal"><div class="sheet"><h3>Demo top up</h3><p id="modalText">This is a preview only. No money will be transferred.</p><div class="buttons"><button class="black-btn" onclick="confirmTopup()">Add simulated entry</button><button class="black-btn" style="background:#eee;color:#111" onclick="closeModal()">Cancel</button></div></div></div>
+<script>
+const titles={home:'Delta Pay',deposit:'Deposit',upi:'UPI',team:'Team',me:'Edit profile',topup:'Top up',login:'Account'};
+let currentAmount=0, activities=[];
+function go(page){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===page));document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));document.getElementById('headerTitle').textContent=titles[page]||'Delta Pay';document.getElementById('headerRight').style.visibility=page==='home'?'visible':'hidden';window.scrollTo({top:0,behavior:'smooth'});}
+document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page)));
+const plans=[{amount:1200,rate:3.5,quota:1242},{amount:2500,rate:3.5,quota:2587},{amount:5000,rate:3.5,quota:5175},{amount:10000,rate:3.5,quota:10350}];
+function renderPlans(){let min=Number(document.getElementById('min').value)||0,max=Number(document.getElementById('max').value)||Infinity,sort=document.getElementById('sort').value;let data=plans.filter(p=>p.amount>=min&&p.amount<=max).sort((a,b)=>sort==='low'?a.amount-b.amount:b.amount-a.amount);document.getElementById('plans').innerHTML=data.map(p=>`<div class="plan"><div><h3>${p.amount.toLocaleString('en-IN')} INR</h3><p>Income</p><div class="green">${p.rate}%　<span style="color:#aaa;font-weight:400">Quota</span></div><div class="green">${p.quota-p.amount>=0?'+':''}${(p.quota-p.amount).toLocaleString('en-IN')}</div></div><button onclick="openPlan(${p.amount},${p.rate},${p.quota})">Buy</button></div>`).join('')||'<div class="empty">No plans match these filters.</div>'}
+function openPlan(amount,rate,quota){currentAmount=amount;document.getElementById('modalText').textContent=`Preview ${amount.toLocaleString('en-IN')} INR plan (${rate}% illustrative figure). This will not charge you.`;document.getElementById('modal').classList.add('show')}
+function simulateTopup(){let a=Number(document.getElementById('amount').value);if(!a||a<1){toast('Enter a valid sample amount.');return}currentAmount=a;document.getElementById('modalText').textContent=`Preview a ${a.toLocaleString('en-IN')} INR top up. No payment will be made.`;document.getElementById('modal').classList.add('show')}
+function confirmTopup(){activities.unshift({amount:currentAmount,date:new Date().toLocaleString()});document.getElementById('balance').textContent=activities.reduce((s,a)=>s+a.amount,0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});document.getElementById('history').innerHTML=activities.map(a=>`<div class="row"><div><b>Simulated top up</b><div class="muted">${a.date}</div></div><div class="value">${a.amount.toLocaleString('en-IN')} INR</div></div>`).join('');document.getElementById('modal').classList.remove('show');go('topup');toast('Simulated entry saved locally. No money moved.')}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+function toast(msg){let t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(window.tt);window.tt=setTimeout(()=>t.style.display='none',2600)}
+function copyCode(){navigator.clipboard?.writeText('DEMO-DELTA WALLET-001').then(()=>toast('Demo invite code copied.')).catch(()=>toast('Demo invite code: DEMO-DELTA WALLET-001'))}
+renderPlans();
+</script>
+</body></html>
