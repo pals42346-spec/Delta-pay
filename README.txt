@@ -18,3 +18,5 @@ guaranteed return, or promise to pay interest. Do not collect customer deposits 
 Before launching a real financial product in India, obtain qualified legal/compliance advice,
 confirm the appropriate regulatory permissions and disclosures, and integrate only authorized,
 secure payment and banking providers.
+
+
